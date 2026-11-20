@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bar & Cafè - Menù Digitale</title>
+    <style>
+        :root {
+            --primary: #3b2314;
+            --primary-light: #5c3a21;
+            --accent: #d97706;
+            --bg: #f8f5f2;
+            --card: #ffffff;
+            --text: #292524;
+            --text-muted: #78716c;
+            --border: #e7e5e4;
+            --success: #16a34a;
+            --danger: #dc2626;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background-color: var(--bg); color: var(--text); padding-bottom: 110px; }
+
+        /* Header */
+        header {
+            background-color: var(--primary);
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .logo { font-size: 1.25rem; font-weight: bold; display: flex; align-items: center; gap: 8px; }
+        .nav-controls { display: flex; gap: 8px; align-items: center; }
+        .btn-nav {
+            background: rgba(255,255,255,0.15);
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+        .btn-nav.active { background: white; color: var(--primary); }
+        .btn-lang { background: transparent; border: 1px solid rgba(255,255,255,0.4); color: white; padding: 6px 10px; border-radius: 6px; font-size: 0.8rem; cursor: pointer; }
+
+        /* Container */
+        .container { max-width: 800px; margin: 0 auto; padding: 20px; }
+
+        /* Customer Hero & Table Selector */
+        .hero { text-align: center; margin-bottom: 20px; }
+        .hero h1 { font-size: 1.6rem; color: var(--primary); margin-bottom: 6px; }
+        .hero p { font-size: 0.9rem; color: var(--text-muted); }
+
+        .table-selector-card {
+            background: var(--card);
+            padding: 16px;
+            border-radius: 14px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            margin-bottom: 20px;
+            border: 1px solid var(--border);
+        }
+        .table-selector-card label { display: block; font-weight: bold; margin-bottom: 10px; color: var(--primary); }
+        .table-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
+        .table-btn {
+            padding: 12px 0;
+            border: 1px solid var(--border);
+            background: var(--bg);
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            color: var(--text);
+            transition: all 0.2s;
+        }
+        .table-btn.selected {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            transform: scale(1.05);
+        }
+
+        /* Categories */
+        .categories { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 15px; scrollbar-width: none; }
+        .categories::-webkit-scrollbar { display: none; }
+        .cat-btn {
+            background: var(--card);
+            border: 1px solid var(--border);
+            padding: 8px 16px;
+            border-radius: 20px;
+            white-space: nowrap;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            cursor: pointer;
+        }
+        .cat-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+
+        /* Menu Grid */
+        .menu-list { display: flex; flex-direction: column; gap: 12px; }
+        .menu-item {
+            background: var(--card);
+            padding: 16px;
+            border-radius: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid var(--border);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+        }
+        .item-info h3 { font-size: 1.05rem; margin-bottom: 4px; color: var(--text); }
+        .item-info p { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 8px; }
+        .item-price { font-weight: bold; color: var(--primary); font-size: 1rem; }
+        .btn-add {
+            background: var(--primary);
+            color: white;
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            font-size: 1.3rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .btn-add:active { transform: scale(0.92); }
+
+        /* Bottom Cart Bar - Tasto a sinistra, riepilogo a destra */
+        .cart-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--card);
+            padding: 14px 20px 24px 20px;
+            box-shadow: 0 -4px 15px rgba(0,0,0,0.08);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            z-index: 90;
+            border-top: 1px solid var(--border);
+        }
+        .cart-summary { display: flex; flex-direction: column; text-align: right; }
+        .cart-total { font-size: 1.15rem; font-weight: bold; color: var(--primary); }
+        .cart-count { font-size: 0.8rem; color: var(--text-muted); }
+        .btn-view-cart {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 12px 18px;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 0.95rem;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .btn-view-cart:disabled { background: #d6d3d1; cursor: not-allowed; }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            justify-content: center;
+            align-items: flex-end;
+            z-index: 200;
+        }
+        .modal-overlay.open { display: flex; }
+        .modal-content {
+            background: var(--card);
+            width: 100%;
+            max-width: 600px;
+            border-radius: 20px 20px 0 0;
+            padding: 24px 24px 70px 24px;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 12px; }
+        .btn-close { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-muted); }
+        .cart-item-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); }
+        .qty-controls { display: flex; align-items: center; gap: 10px; }
+        .qty-btn { width: 28px; height: 28px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg); font-weight: bold; cursor: pointer; }
+        .btn-submit-order {
+            width: 100%;
+            background: var(--success);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 12px;
+            font-size: 1.05rem;
+            font-weight: bold;
+            margin-top: 20px;
+            cursor: pointer;
+        }
+
+        /* Staff / Banco View */
+        .hidden { display: none !important; }
+        .pin-box {
+            max-width: 340px;
+            margin: 40px auto;
+            background: var(--card);
+            padding: 24px;
+            border-radius: 16px;
+            text-align: center;
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        .pin-input {
+            width: 100%;
+            padding: 12px;
+            font-size: 1.4rem;
+            text-align: center;
+            letter-spacing: 6px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            margin: 15px 0;
+        }
+        .staff-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+        .order-card {
+            background: var(--card);
+            border-left: 5px solid var(--accent);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 14px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            border-top: 1px solid var(--border);
+            border-right: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+        }
+        .order-card.completed { border-left-color: var(--success); opacity: 0.7; }
+        .order-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .table-badge { background: var(--primary); color: white; padding: 4px 10px; border-radius: 6px; font-weight: bold; font-size: 0.95rem; }
+        .order-time { font-size: 0.85rem; color: var(--text-muted); }
+        .order-items-list { list-style: none; margin-bottom: 12px; }
+        .order-items-list li { padding: 4px 0; font-size: 0.95rem; display: flex; justify-content: space-between; }
+        .order-actions { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border); padding-top: 10px; }
+        .btn-done { background: var(--success); color: white; border: none; padding: 8px 14px; border-radius: 8px; font-weight: 600; cursor: pointer; }
+        .btn-clear { background: var(--danger); color: white; border: none; padding: 8px 12px; border-radius: 8px; font-size: 0.85rem; cursor: pointer; }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            top: 75px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1c1917;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 30px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            z-index: 300;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+        .toast.show { opacity: 1; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo">☕ Bar & Cafè</div>
+        <div class="nav-controls">
+            <button class="btn-lang" onclick="toggleLang()" id="langBtn">IT / EN</button>
+            <button class="btn-nav active" onclick="switchView('customer')" id="navCustomer">Menù</button>
+            <button class="btn-nav" onclick="switchView('staff')" id="navStaff">🔒 Banco <span id="badgeCount" style="background:#dc2626;padding:1px 6px;border-radius:10px;font-size:0.75rem;display:none;">0</span></button>
+        </div>
+    </header>
+
+    <div id="toast" class="toast">Messaggio</div>
+
+    <main id="customerView" class="container">
+        <div class="hero">
+            <h1 data-i18n="heroTitle">Menù & Ordini al Tavolo</h1>
+            <p data-i18n="heroSub">Seleziona il tuo tavolo, scegli dal menù e invia l'ordine direttamente al banco</p>
+        </div>
+
+        <div class="table-selector-card">
+            <label data-i18n="selectTable">📍 Seleziona il tuo tavolo (1 - 7):</label>
+            <div class="table-grid" id="tableGrid"></div>
+        </div>
+
+        <div class="categories" id="categoryTabs"></div>
+
+        <div class="menu-list" id="menuList"></div>
+    </main>
+
+    <!-- Barra Carrello: Pulsante a sinistra e Totale a destra -->
+    <div class="cart-bar" id="cartBar">
+        <button class="btn-view-cart" id="btnViewCart" onclick="openCartModal()" disabled data-i18n="viewOrder">👈 Vedi Ordine</button>
+        <div class="cart-summary">
+            <span class="cart-total" id="cartTotal">0,00 €</span>
+            <span class="cart-count" id="cartCount" data-i18n="emptyCart">Nessun articolo selezionato</span>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="cartModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 data-i18n="yourOrder">Il tuo Ordine</h2>
+                <button class="btn-close" onclick="closeCartModal()">&times;</button>
+            </div>
+            <p id="modalTableInfo" style="font-weight:bold; color:var(--accent); margin-bottom:12px;"></p>
+            <div id="cartItemsContainer"></div>
+            <div style="display:flex; justify-content:space-between; font-size:1.2rem; font-weight:bold; margin-top:16px;">
+                <span>Totale:</span>
+                <span id="modalTotal">0,00 €</span>
+            </div>
+            <button class="btn-submit-order" onclick="submitOrder()" data-i18n="sendToCounter">🚀 Invia Ordine al Banco</button>
+        </div>
+    </div>
+
+    <section id="staffView" class="container hidden">
+        <div id="pinSection" class="pin-box">
+            <h2>🔒 Area Riservata Banco</h2>
+            <p style="font-size:0.85rem; color:var(--text-muted); margin-top:6px;">Inserisci il PIN per visualizzare le comande in tempo reale (PIN default: <strong>1234</strong>)</p>
+            <input type="password" id="pinInput" class="pin-input" maxlength="4" placeholder="••••" inputmode="numeric">
+            <button class="btn-submit-order" style="margin-top:5px;" onclick="verifyPin()">Accedi</button>
+        </div>
+
+        <div id="dashboardSection" class="hidden">
+            <div class="staff-header">
+                <div>
+                    <h2>📋 Comande Tavoli (1-7)</h2>
+                    <p style="font-size:0.85rem; color:var(--text-muted);">Aggiornamento automatico in tempo reale</p>
+                </div>
+                <div style="display:flex; gap:8px;">
+                    <button class="btn-clear" onclick="clearAllOrders()">🗑️ Pulisci Tutto</button>
+                    <button class="btn-nav" style="background:var(--primary);" onclick="logoutStaff()">Esci</button>
+                </div>
+            </div>
+            <div id="ordersList"></div>
+        </div>
+    </section>
+
+    <script>
+        const STAFF_PIN = "1234";
+        let currentLang = 'it';
+        let selectedTable = null;
+        let selectedCategory = 'all';
+        let cart = [];
+        let isStaffAuthenticated = false;
+        let knownOrderIds = new Set();
+
+        const translations = {
+            it: {
+                heroTitle: "Menù & Ordini al Tavolo",
+                heroSub: "Seleziona il tuo tavolo, scegli dal menù e invia l'ordine direttamente al banco",
+                selectTable: "📍 Seleziona il tuo tavolo (1 - 7):",
+                emptyCart: "Nessun articolo selezionato",
+                viewOrder: "👈 Vedi Ordine",
+                yourOrder: "Il tuo Ordine",
+                sendToCounter: "🚀 Invia Ordine al Banco",
+                all: "Tutto",
+                items: "articoli",
+                item: "articolo",
+                selectTableAlert: "⚠️ Seleziona prima il numero del tuo tavolo!",
+                orderSent: "✅ Ordine inviato al banco! Arriviamo subito."
+            },
+            en: {
+                heroTitle: "Menu & Table Ordering",
+                heroSub: "Select your table, choose from the menu and send your order directly to the bar",
+                selectTable: "📍 Select your table (1 - 7):",
+                emptyCart: "No items selected",
+                viewOrder: "👈 View Order",
+                yourOrder: "Your Order",
+                sendToCounter: "🚀 Send Order to Bar",
+                all: "All",
+                items: "items",
+                item: "item",
+                selectTableAlert: "⚠️ Please select your table number first!",
+                orderSent: "✅ Order sent to the bar! Coming right up."
+            }
+        };
+
+        const menuData = [
+            { id: 1, cat: "Caffetteria", name_it: "Caffè Espresso", name_en: "Espresso Coffee", desc_it: "Miscela 100% Arabica", desc_en: "100% Arabica blend", price: 1.20 },
+            { id: 2, cat: "Caffetteria", name_it: "Cappuccino", name_en: "Cappuccino", desc_it: "Espresso con crema di latte", desc_en: "Espresso with steamed milk foam", price: 1.60 },
+            { id: 3, cat: "Caffetteria", name_it: "Caffè Macchiato", name_en: "Espresso Macchiato", desc_it: "Espresso con un goccio di latte", desc_en: "Espresso with a dash of milk", price: 1.30 },
+            { id: 4, cat: "Caffetteria", name_it: "Caffè Ginseng", name_en: "Ginseng Coffee", desc_it: "Cremoso ed energizzante", desc_en: "Creamy and energizing", price: 1.80 },
+            { id: 5, cat: "Brioches & Dolci", name_it: "Cornetto Vuoto / Crema", name_en: "Plain / Custard Croissant", desc_it: "Sfoglia artigianale calda", desc_en: "Warm artisan puff pastry", price: 1.50 },
+            { id: 6, cat: "Brioches & Dolci", name_it: "Cornetto Pistacchio", name_en: "Pistachio Croissant", desc_it: "Farcito con crema di pistacchio", desc_en: "Filled with pistachio cream", price: 1.80 },
+            { id: 7, cat: "Brioches & Dolci", name_it: "Torta della Nonna", name_en: "Grandma's Cake", desc_it: "Frolla, crema pasticcera e pinoli", desc_en: "Shortcrust, custard and pine nuts", price: 3.50 },
+            { id: 8, cat: "Bevande", name_it: "Acqua Naturale / Frizzante", name_en: "Still / Sparkling Water", desc_it: "Bottiglia 50cl", desc_en: "50cl bottle", price: 1.20 },
+            { id: 9, cat: "Bevande", name_it: "Spremuta d'Arancia", name_en: "Fresh Orange Juice", desc_it: "Arance fresche spremute al momento", desc_en: "Freshly squeezed oranges", price: 3.50 },
+            { id: 10, cat: "Bevande", name_it: "Coca-Cola / Fanta", name_en: "Coca-Cola / Fanta", desc_it: "Lattina 33cl con ghiaccio e limone", desc_en: "33cl can with ice and lemon", price: 2.80 },
+            { id: 11, cat: "Aperitivi & Snack", name_it: "Spritz Aperol / Campari", name_en: "Aperol / Campari Spritz", desc_it: "Servito con patatine e olive", desc_en: "Served with chips and olives", price: 5.50 },
+            { id: 12, cat: "Aperitivi & Snack", name_it: "Toast Classico", name_en: "Classic Ham & Cheese Toast", desc_it: "Prosciutto cotto e fontina", desc_en: "Cooked ham and fontina cheese", price: 4.00 },
+            { id: 13, cat: "Aperitivi & Snack", name_it: "Tramezzino Tonno e Uova", name_en: "Tuna & Egg Sandwich", desc_it: "Pane morbido artigianale", desc_en: "Soft artisan bread", price: 3.20 }
+        ];
+
+        function init() {
+            renderTables();
+            renderCategories();
+            renderMenu();
+            loadOrdersForBadge();
+            setInterval(checkRealtimeOrders, 2500);
+        }
+
+        function formatPrice(num) {
+            return num.toFixed(2).replace('.', ',') + ' €';
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 3000);
+        }
+
+        function toggleLang() {
+            currentLang = currentLang === 'it' ? 'en' : 'it';
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (translations[currentLang][key]) {
+                    el.textContent = translations[currentLang][key];
+                }
+            });
+            renderCategories();
+            renderMenu();
+            updateCartUI();
+        }
+
+        function renderTables() {
+            const grid = document.getElementById('tableGrid');
+            grid.innerHTML = '';
+            for (let i = 1; i <= 7; i++) {
+                const btn = document.createElement('button');
+                btn.className = `table-btn ${selectedTable === i ? 'selected' : ''}`;
+                btn.textContent = i;
+                btn.onclick = () => {
+                    selectedTable = i;
+                    renderTables();
+                };
+                grid.appendChild(btn);
+            }
+        }
+
+        function renderCategories() {
+            const tabs = document.getElementById('categoryTabs');
+            const cats = ['all', ...new Set(menuData.map(m => m.cat))];
+            tabs.innerHTML = cats.map(c => {
+                const label = c === 'all' ? translations[currentLang].all : c;
+                return `<button class="cat-btn ${selectedCategory === c ? 'active' : ''}" onclick="selectCategory('${c}')">${label}</button>`;
+            }).join('');
+        }
+
+        function selectCategory(cat) {
+            selectedCategory = cat;
+            renderCategories();
+            renderMenu();
+        }
+
+        function renderMenu() {
+            const list = document.getElementById('menuList');
+            const filtered = selectedCategory === 'all' ? menuData : menuData.filter(m => m.cat === selectedCategory);
+            list.innerHTML = filtered.map(item => `
+                <div class="menu-item">
+                    <div class="item-info">
+                        <h3>${currentLang === 'it' ? item.name_it : item.name_en}</h3>
+                        <p>${currentLang === 'it' ? item.desc_it : item.desc_en}</p>
+                        <div class="item-price">${formatPrice(item.price)}</div>
+                    </div>
+                    <button class="btn-add" onclick="addToCart(${item.id})">+</button>
+                </div>
+            `).join('');
+        }
+
+        function addToCart(id) {
+            if (!selectedTable) {
+                showToast(translations[currentLang].selectTableAlert);
+                document.querySelector('.table-selector-card').scrollIntoView({ behavior: 'smooth' });
+                return;
+            }
+            const existing = cart.find(c => c.id === id);
+            if (existing) {
+                existing.qty++;
+            } else {
+                const product = menuData.find(m => m.id === id);
+                cart.push({ ...product, qty: 1 });
+            }
+            updateCartUI();
+            showToast(`+1 ${currentLang === 'it' ? menuData.find(m => m.id === id).name_it : menuData.find(m => m.id === id).name_en}`);
+        }
+
+        function updateCartUI() {
+            const total = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
+            const count = cart.reduce((sum, item) => sum + item.qty, 0);
+            document.getElementById('cartTotal').textContent = formatPrice(total);
+            const countEl = document.getElementById('cartCount');
+            const btn = document.getElementById('btnViewCart');
+
+            if (count === 0) {
+                countEl.textContent = translations[currentLang].emptyCart;
+                btn.disabled = true;
+            } else {
+                const word = count === 1 ? translations[currentLang].item : translations[currentLang].items;
+                countEl.textContent = `${count} ${word} • Tavolo ${selectedTable}`;
+                btn.disabled = false;
+            }
+        }
+
+        function openCartModal() {
+            if (!selectedTable) {
+                showToast(translations[currentLang].selectTableAlert);
+                return;
+            }
+            document.getElementById('modalTableInfo').textContent = `📍 Tavolo N° ${selectedTable}`;
+            renderCartModalItems();
+            document.getElementById('cartModal').classList.add('open');
+        }
+
+        function closeCartModal() {
+            document.getElementById('cartModal').classList.remove('open');
+        }
+
+        function renderCartModalItems() {
+            const container = document.getElementById('cartItemsContainer');
+            if (cart.length === 0) {
+                closeCartModal();
+                return;
+            }
+            container.innerHTML = cart.map(item => `
+                <div class="cart-item-row">
+                    <div>
+                        <div style="font-weight:bold;">${currentLang === 'it' ? item.name_it : item.name_en}</div>
+                        <div style="font-size:0.85rem; color:var(--text-muted);">${formatPrice(item.price)} cad.</div>
+                    </div>
+                    <div class="qty-controls">
+                        <button class="qty-btn" onclick="changeQty(${item.id}, -1)">-</button>
+                        <span style="font-weight:bold;">${item.qty}</span>
+                        <button class="qty-btn" onclick="changeQty(${item.id}, 1)">+</button>
+                    </div>
+                </div>
+            `).join('');
+            const total = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
+            document.getElementById('modalTotal').textContent = formatPrice(total);
+        }
+
+        function changeQty(id, delta) {
+            const idx = cart.findIndex(c => c.id === id);
+            if (idx > -1) {
+                cart[idx].qty += delta;
+                if (cart[idx].qty <= 0) cart.splice(idx, 1);
+            }
+            updateCartUI();
+            renderCartModalItems();
+        }
+
+        function submitOrder() {
+            if (!selectedTable || cart.length === 0) return;
+
+            const orders = JSON.parse(localStorage.getItem('bar_orders') || '[]');
+            const newOrder = {
+                id: Date.now(),
+                table: selectedTable,
+                time: new Date().toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }),
+                items: cart.map(c => ({ name: c.name_it, qty: c.qty, price: c.price })),
+                total: cart.reduce((sum, item) => sum + item.price * item.qty, 0),
+                status: 'pending'
+            };
+
+            orders.unshift(newOrder);
+            localStorage.setItem('bar_orders', JSON.stringify(orders));
+
+            cart = [];
+            updateCartUI();
+            closeCartModal();
+            showToast(translations[currentLang].orderSent);
+            loadOrdersForBadge();
+        }
+
+        /* STAFF LOGIC */
+        function switchView(view) {
+            const custView = document.getElementById('customerView');
+            const staffView = document.getElementById('staffView');
+            const cartBar = document.getElementById('cartBar');
+            const navCust = document.getElementById('navCustomer');
+            const navStaff = document.getElementById('navStaff');
+
+            if (view === 'customer') {
+                custView.classList.remove('hidden');
+                cartBar.classList.remove('hidden');
+                staffView.classList.add('hidden');
+                navCust.classList.add('active');
+                navStaff.classList.remove('active');
+            } else {
+                custView.classList.add('hidden');
+                cartBar.classList.add('hidden');
+                staffView.classList.remove('hidden');
+                navCust.classList.remove('active');
+                navStaff.classList.add('active');
+                if (isStaffAuthenticated) {
+                    renderStaffOrders();
+                }
+            }
+        }
+
+        function verifyPin() {
+            const input = document.getElementById('pinInput').value;
+            if (input === STAFF_PIN) {
+                isStaffAuthenticated = true;
+                document.getElementById('pinSection').classList.add('hidden');
+                document.getElementById('dashboardSection').classList.remove('hidden');
+                renderStaffOrders();
+            } else {
+                showToast("❌ PIN errato!");
+                document.getElementById('pinInput').value = '';
+            }
+        }
+
+        function logoutStaff() {
+            isStaffAuthenticated = false;
+            document.getElementById('pinInput').value = '';
+            document.getElementById('pinSection').classList.remove('hidden');
+            document.getElementById('dashboardSection').classList.add('hidden');
+            switchView('customer');
+        }
+
+        function playBeep() {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(880, ctx.currentTime);
+                gain.gain.setValueAtTime(0.2, ctx.currentTime);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.25);
+            } catch (e) {}
+        }
+
+        function checkRealtimeOrders() {
+            const orders = JSON.parse(localStorage.getItem('bar_orders') || '[]');
+            const pending = orders.filter(o => o.status === 'pending');
+
+            let hasNew = false;
+            pending.forEach(o => {
+                if (!knownOrderIds.has(o.id)) {
+                    knownOrderIds.add(o.id);
+                    hasNew = true;
+                }
+            });
+
+            loadOrdersForBadge();
+
+            if (hasNew && isStaffAuthenticated) {
+                playBeep();
+                renderStaffOrders();
+            }
+        }
+
+        function loadOrdersForBadge() {
+            const orders = JSON.parse(localStorage.getItem('bar_orders') || '[]');
+            const pendingCount = orders.filter(o => o.status === 'pending').length;
+            const badge = document.getElementById('badgeCount');
+            if (pendingCount > 0) {
+                badge.textContent = pendingCount;
+                badge.style.display = 'inline-block';
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+
+        function renderStaffOrders() {
+            const list = document.getElementById('ordersList');
+            const orders = JSON.parse(localStorage.getItem('bar_orders') || '[]');
+            orders.forEach(o => knownOrderIds.add(o.id));
+
+            if (orders.length === 0) {
+                list.innerHTML = `<p style="text-align:center; color:var(--text-muted); margin-top:30px;">Nessuna comanda presente al momento.</p>`;
+                return;
+            }
+
+            list.innerHTML = orders.map(o => `
+                <div class="order-card ${o.status === 'completed' ? 'completed' : ''}">
+                    <div class="order-top">
+                        <span class="table-badge">Tavolo ${o.table}</span>
+                        <span class="order-time">🕒 ${o.time} • ${o.status === 'pending' ? '🟠 In attesa' : '✅ Servito'}</span>
+                    </div>
+                    <ul class="order-items-list">
+                        ${o.items.map(i => `<li><span><strong>${i.qty}x</strong> ${i.name}</span><span>${formatPrice(i.price * i.qty)}</span></li>`).join('')}
+                    </ul>
+                    <div class="order-actions">
+                        <strong style="color:var(--primary);">Totale: ${formatPrice(o.total)}</strong>
+                        ${o.status === 'pending' ? `<button class="btn-done" onclick="markOrderDone(${o.id})">✓ Segna come Servito</button>` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function markOrderDone(id) {
+            const orders = JSON.parse(localStorage.getItem('bar_orders') || '[]');
+            const order = orders.find(o => o.id === id);
+            if (order) order.status = 'completed';
+            localStorage.setItem('bar_orders', JSON.stringify(orders));
+            renderStaffOrders();
+            loadOrdersForBadge();
+        }
+
+        function clearAllOrders() {
+            if (confirm("Vuoi cancellare tutte le comande dallo storico?")) {
+                localStorage.removeItem('bar_orders');
+                knownOrderIds.clear();
+                renderStaffOrders();
+                loadOrdersForBadge();
+            }
+        }
+
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'bar_orders') {
+                checkRealtimeOrders();
+            }
+        });
+
+        init();
+    </script>
+</body>
+</html>
